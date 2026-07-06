@@ -1,0 +1,40 @@
+# Trader Intelligence Digest configuration
+# Channel IDs are public YouTube identifiers — safe to commit.
+
+timezone: "Europe/Sofia"
+
+editions:
+  morning:
+    target_hour: 9
+    target_minute: 0
+    lookback_hours: 14
+  afternoon:
+    target_hour: 17
+    target_minute: 30
+    lookback_hours: 10
+
+roster:
+  - handle: "@VerifiedInvesting"
+    channel_id: "UC67V_VAZ9S6T768M0coS6_w"
+  - handle: "@TraderNick"
+    channel_id: "UCPCPE5MoI7DS1WiVB_-mzNw"
+  - handle: "@JosephCarlsonShow"
+    channel_id: "UCbta0n8i6Rljh0obO7HzG9A"
+  - handle: "@JosephCarlsonAfterHours"
+    channel_id: "UCfCT7SSFEWyG4th9ZmaGYqQ"
+  - handle: "@danielpronk"
+    channel_id: "UCL-F-8nxFtFZ4M3RWkGn6Qw"
+  - handle: "@GarethSolowayProTrader"
+    channel_id: "UCBfQDWhESbZ_clMox0OevpA"
+
+gemini:
+  model: "gemini-flash-latest"
+  media_resolution: "MEDIA_RESOLUTION_LOW"
+  temperature: 0
+
+quota:
+  max_video_seconds_per_run: 12600  # ~3.5 video-hours, free-tier budget per run
+  max_video_seconds_single: 7200    # 2h — longer videos are skipped, not analyzed
+
+pages:
+  base_url: "https://sdinev.github.io/trader-intelligence"

@@ -1,0 +1,84 @@
+name: Trader Intelligence Digest
+
+on:
+  schedule:
+    # Morning edition (~09:00 Europe/Sofia) — one entry per DST state
+    - cron: "0 6 * * *"   # EEST (UTC+3, summer)
+    - cron: "0 7 * * *"   # EET  (UTC+2, winter)
+    # Afternoon edition (~17:30 Europe/Sofia) — one entry per DST state
+    - cron: "30 14 * * *" # EEST
+    - cron: "30 15 * * *" # EET
+  workflow_dispatch:
+    inputs:
+      edition:
+        description: "Force a specific edition (skips DST-slot gating)"
+        required: false
+        type: choice
+        options: ["", "morning", "afternoon"]
+        default: ""
+      dry_run:
+        description: "Run without writing files, updating state, or posting to Discord"
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: trader-intelligence-digest
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  run-digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run digest pipeline
+        id: run
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          ARGS=""
+          if [ -n "${{ inputs.edition }}" ]; then ARGS="$ARGS --edition ${{ inputs.edition }}"; fi
+          if [ "${{ inputs.dry_run }}" = "true" ]; then ARGS="$ARGS --dry-run"; fi
+          python src/main.py $ARGS
+
+      - name: Commit and push brief
+        if: ${{ inputs.dry_run != true }}
+        run: |
+          git config user.name "trader-intelligence-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add docs/ state.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git commit -m "Publish digest run $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          for attempt in 1 2 3; do
+            git pull --rebase && git push && break
+            echo "Push attempt $attempt failed, retrying..."
+            sleep 5
+          done
+
+      - name: Notify Discord on failure
+        if: failure()
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          curl -sf -X POST -H "Content-Type: application/json" \
+            -d "{\"content\": \"⚠️ Trader Intelligence Digest run failed: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}" \
+            "$DISCORD_WEBHOOK_URL"

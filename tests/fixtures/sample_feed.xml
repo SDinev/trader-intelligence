@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns:yt="http://www.youtube.com/xml/schemas/2015" xmlns="http://www.w3.org/2005/Atom">
+  <link rel="self" href="http://www.youtube.com/feeds/videos.xml?channel_id=UCPCPE5MoI7DS1WiVB_-mzNw"/>
+  <id>yt:channel:UCPCPE5MoI7DS1WiVB_-mzNw</id>
+  <yt:channelId>UCPCPE5MoI7DS1WiVB_-mzNw</yt:channelId>
+  <title>TraderNick</title>
+  <entry>
+    <id>yt:video:newvid001</id>
+    <yt:videoId>newvid001</yt:videoId>
+    <yt:channelId>UCPCPE5MoI7DS1WiVB_-mzNw</yt:channelId>
+    <title>Pre-market game plan for tomorrow</title>
+    <link rel="alternate" href="https://www.youtube.com/watch?v=newvid001"/>
+    <author><name>TraderNick</name></author>
+    <published>2026-07-06T06:00:00+00:00</published>
+    <updated>2026-07-06T06:10:00+00:00</updated>
+  </entry>
+  <entry>
+    <id>yt:video:oldvid002</id>
+    <yt:videoId>oldvid002</yt:videoId>
+    <yt:channelId>UCPCPE5MoI7DS1WiVB_-mzNw</yt:channelId>
+    <title>Last week's recap</title>
+    <link rel="alternate" href="https://www.youtube.com/watch?v=oldvid002"/>
+    <author><name>TraderNick</name></author>
+    <published>2026-06-28T06:00:00+00:00</published>
+    <updated>2026-06-28T06:10:00+00:00</updated>
+  </entry>
+</feed>
