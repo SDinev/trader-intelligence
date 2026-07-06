@@ -143,7 +143,8 @@ def main() -> None:
     brief_path = BRIEFS_DIR / brief_filename
     page_url = f"{config['pages']['base_url']}/briefs/{date_str}-{brief.edition}"
 
-    markdown = render_brief_markdown(brief)
+    ticker_aliases = config.get("ticker_aliases", {})
+    markdown = render_brief_markdown(brief, ticker_aliases)
     print(markdown)
 
     if args.dry_run:
@@ -158,7 +159,9 @@ def main() -> None:
     save_state(STATE_PATH, result["new_state"])
 
     if discord_webhook_url:
-        post_discord_message(discord_webhook_url, discord_summary(brief, page_url))
+        post_discord_message(
+            discord_webhook_url, discord_summary(brief, page_url, ticker_aliases)
+        )
 
 
 if __name__ == "__main__":

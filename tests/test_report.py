@@ -86,6 +86,50 @@ def test_asset_table_merges_same_ticker_across_videos():
     assert "510.00" in qqq_rows[0]
 
 
+def test_asset_table_merges_case_insensitive_tickers():
+    v1 = make_video("v1", "recap A")
+    v2 = make_video("v2", "recap B")
+    a1 = VideoAnalysis(video=v1, assets=[AssetLevels(
+        ticker="Gold", support=[PriceLevel(price="2300", timestamp_seconds=10, source_video_id="v1")])])
+    a2 = VideoAnalysis(video=v2, assets=[AssetLevels(
+        ticker="GOLD", resistance=[PriceLevel(price="3600", timestamp_seconds=20, source_video_id="v2")])])
+    brief = Brief(
+        edition="morning",
+        generated_at=GENERATED_AT,
+        creator_summaries=[
+            CreatorSummary(handle="@a", analyses=[a1]),
+            CreatorSummary(handle="@b", analyses=[a2]),
+        ],
+    )
+    md = render_brief_markdown(brief)
+    gold_rows = [line for line in md.splitlines() if line.startswith("| GOLD ")]
+    assert len(gold_rows) == 1
+    assert "2300" in gold_rows[0] and "3600" in gold_rows[0]
+
+
+def test_asset_table_applies_configured_ticker_aliases():
+    v1 = make_video("v1", "recap A")
+    v2 = make_video("v2", "recap B")
+    a1 = VideoAnalysis(video=v1, assets=[AssetLevels(
+        ticker="XAUUSD", support=[PriceLevel(price="4200", timestamp_seconds=10, source_video_id="v1")])])
+    a2 = VideoAnalysis(video=v2, assets=[AssetLevels(
+        ticker="GOLD", support=[PriceLevel(price="3500", timestamp_seconds=20, source_video_id="v2")])])
+    brief = Brief(
+        edition="morning",
+        generated_at=GENERATED_AT,
+        creator_summaries=[
+            CreatorSummary(handle="@a", analyses=[a1]),
+            CreatorSummary(handle="@b", analyses=[a2]),
+        ],
+    )
+    md = render_brief_markdown(brief, ticker_aliases={"XAUUSD": "GOLD"})
+    gold_rows = [line for line in md.splitlines() if line.startswith("| GOLD ")]
+    xau_rows = [line for line in md.splitlines() if line.startswith("| XAUUSD ")]
+    assert len(gold_rows) == 1
+    assert len(xau_rows) == 0
+    assert "4200" in gold_rows[0] and "3500" in gold_rows[0]
+
+
 def test_footer_lists_too_long_videos():
     too_long_video = make_video("v3", "3-hour marathon stream")
     brief = Brief(edition="morning", generated_at=GENERATED_AT, too_long_videos=[too_long_video])

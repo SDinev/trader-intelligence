@@ -38,3 +38,14 @@ quota:
 
 pages:
   base_url: "https://sdinev.github.io/trader-intelligence"
+
+# Ticker aliases fold different symbols a creator might use for the SAME
+# instrument into one canonical row. Matching is case-insensitive, so casing
+# duplicates (e.g. "Gold" vs "GOLD") are already merged automatically — you only
+# need entries here for genuine synonyms. Be careful NOT to merge different
+# instruments (e.g. GLD the ETF vs GDX gold miners vs XAUUSD spot) — their price
+# scales differ and a merged row would be nonsensical. Format: ALIAS: CANONICAL
+ticker_aliases: {}
+  # Example (uncomment / edit to taste):
+  # XAUUSD: GOLD
+  # XAGUSD: SILVER

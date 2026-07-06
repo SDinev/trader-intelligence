@@ -3,13 +3,25 @@ from pathlib import Path
 from models import Brief, CreatorSummary
 
 
-def _merge_assets_by_ticker(creator_summaries: list[CreatorSummary]) -> dict:
+def normalize_ticker(raw: str, aliases: dict | None = None) -> str:
+    canonical = raw.strip().upper()
+    if aliases:
+        # alias keys are matched case-insensitively
+        alias_map = {k.strip().upper(): v.strip().upper() for k, v in aliases.items()}
+        canonical = alias_map.get(canonical, canonical)
+    return canonical
+
+
+def _merge_assets_by_ticker(
+    creator_summaries: list[CreatorSummary], ticker_aliases: dict | None = None
+) -> dict:
     merged: dict[str, dict] = {}
     for summary in creator_summaries:
         for analysis in summary.analyses:
             for asset in analysis.assets:
+                ticker = normalize_ticker(asset.ticker, ticker_aliases)
                 bucket = merged.setdefault(
-                    asset.ticker, {"support": [], "resistance": [], "strategy_notes": []}
+                    ticker, {"support": [], "resistance": [], "strategy_notes": []}
                 )
                 bucket["support"].extend(asset.support)
                 bucket["resistance"].extend(asset.resistance)
@@ -30,7 +42,7 @@ def _format_strategy_cell(strategy_notes: list[tuple[str, str]]) -> str:
     return "; ".join(f"{handle}: {note}" for handle, note in strategy_notes)
 
 
-def render_brief_markdown(brief: Brief) -> str:
+def render_brief_markdown(brief: Brief, ticker_aliases: dict | None = None) -> str:
     lines = [
         f"# Trader Intelligence Brief — {brief.edition.capitalize()} Edition",
         f"_Generated {brief.generated_at.isoformat()}_",
@@ -50,7 +62,7 @@ def render_brief_markdown(brief: Brief) -> str:
         lines.append("")
         return "\n".join(lines)
 
-    merged_assets = _merge_assets_by_ticker(brief.creator_summaries)
+    merged_assets = _merge_assets_by_ticker(brief.creator_summaries, ticker_aliases)
     if merged_assets:
         lines.append("## Asset Breakdown")
         lines.append("")
@@ -112,8 +124,8 @@ def render_brief_markdown(brief: Brief) -> str:
     return "\n".join(lines)
 
 
-def discord_summary(brief: Brief, page_url: str) -> str:
-    merged_assets = _merge_assets_by_ticker(brief.creator_summaries)
+def discord_summary(brief: Brief, page_url: str, ticker_aliases: dict | None = None) -> str:
+    merged_assets = _merge_assets_by_ticker(brief.creator_summaries, ticker_aliases)
     tickers = sorted(merged_assets) if merged_assets else []
 
     lines = [f"**Trader Intelligence Brief — {brief.edition.capitalize()} Edition**"]
