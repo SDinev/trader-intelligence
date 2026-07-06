@@ -27,6 +27,15 @@ def test_parse_iso8601_duration_seconds_only():
     assert parse_iso8601_duration("PT30S") == 30
 
 
+def test_parse_iso8601_duration_live_stream_p0d_returns_zero():
+    # YouTube reports "P0D" (no time component) for live/upcoming broadcasts
+    assert parse_iso8601_duration("P0D") == 0
+
+
+def test_parse_iso8601_duration_unparseable_returns_zero():
+    assert parse_iso8601_duration("") == 0
+
+
 def test_parse_videos_list_response_sets_duration_and_live_status():
     videos_by_id = {"v1": make_video("v1"), "v2": make_video("v2")}
     api_response = {
@@ -38,7 +47,7 @@ def test_parse_videos_list_response_sets_duration_and_live_status():
             },
             {
                 "id": "v2",
-                "contentDetails": {"duration": "PT0S"},
+                "contentDetails": {"duration": "P0D"},
                 "snippet": {"liveBroadcastContent": "live"},
             },
         ]
@@ -51,6 +60,22 @@ def test_parse_videos_list_response_sets_duration_and_live_status():
     assert result_by_id["v1"].title == "title-v1"
 
     assert result_by_id["v2"].is_live is True
+    assert result_by_id["v2"].duration_seconds == 0
+
+
+def test_upcoming_broadcast_is_treated_as_not_finished():
+    videos_by_id = {"v3": make_video("v3")}
+    api_response = {
+        "items": [
+            {
+                "id": "v3",
+                "contentDetails": {"duration": "P0D"},
+                "snippet": {"liveBroadcastContent": "upcoming"},
+            }
+        ]
+    }
+    result = parse_videos_list_response(api_response, videos_by_id)
+    assert result[0].is_live is True  # not "none" -> not an analyzable finished VOD
 
 
 def test_fetch_video_metadata_raises_with_response_body_on_error(monkeypatch):

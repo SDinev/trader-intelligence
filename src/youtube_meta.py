@@ -15,7 +15,11 @@ DURATION_RE = re.compile(
 
 
 def parse_iso8601_duration(duration: str) -> int:
+    # Live/upcoming broadcasts report "P0D" (no time component) and other
+    # non-standard values; treat anything unparseable as 0 seconds.
     match = DURATION_RE.fullmatch(duration)
+    if match is None:
+        return 0
     hours = int(match.group("hours") or 0)
     minutes = int(match.group("minutes") or 0)
     seconds = int(match.group("seconds") or 0)
@@ -28,7 +32,9 @@ def parse_videos_list_response(api_response: dict, videos_by_id: dict[str, Video
         video_id = item["id"]
         original = videos_by_id[video_id]
         duration_seconds = parse_iso8601_duration(item["contentDetails"]["duration"])
-        is_live = item["snippet"]["liveBroadcastContent"] == "live"
+        # Only "none" is a finished, analyzable VOD; "live" and "upcoming"
+        # are not yet analyzable and are deferred to the pending queue.
+        is_live = item["snippet"]["liveBroadcastContent"] != "none"
         result.append(replace(original, duration_seconds=duration_seconds, is_live=is_live))
     return result
 
