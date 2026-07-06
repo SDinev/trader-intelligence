@@ -116,4 +116,15 @@ def analyze_video(client, video: Video, config: dict) -> VideoAnalysis:
         contents=contents,
         config=generation_config,
     )
+    # Diagnostic: if the YouTube video is truly ingested, prompt_token_count is
+    # large (tens of thousands). A few hundred means the model never read the
+    # video and is answering from the prompt/title alone.
+    usage = getattr(response, "usage_metadata", None)
+    if usage is not None:
+        print(
+            f"[usage] {video.video_id} ({video.channel_handle}): "
+            f"prompt_tokens={getattr(usage, 'prompt_token_count', '?')} "
+            f"candidates_tokens={getattr(usage, 'candidates_token_count', '?')} "
+            f"total_tokens={getattr(usage, 'total_token_count', '?')}"
+        )
     return parse_analysis_response(video, response.text)
