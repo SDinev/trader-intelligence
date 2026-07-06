@@ -2,15 +2,26 @@
 
 All code and tests were written and verified locally. These are the remaining steps to get it running live on GitHub, targeting **https://github.com/SDinev/trader-intelligence/**.
 
-## 1. Push the code
+## Status
+
+- ✅ **Step 1 — Code pushed.** Initial commit `481baa7` (31 files) is live on `main`, authored as `SDinev`. Pushed over HTTPS using the `SDinev` `gh` token (SSH was avoided because the machine's `id_ed25519` key belongs to a separate work account). The token needed the `workflow` scope added (`gh auth refresh -h github.com -s workflow`) before the push would accept `.github/workflows/digest.yml`.
+- ✅ **Step 3/4 — Secrets added.** `GEMINI_API_KEY`, `YOUTUBE_API_KEY`, `DISCORD_WEBHOOK_URL` are set as Actions repository secrets.
+- ⬜ **Step 2 — Enable Pages** (below)
+- ⬜ **Step 5/6 — First dry run, then first live run** (below)
+
+## 1. Push the code — DONE
+
+For reference, this is how it was pushed (already completed):
 
 ```bash
 cd "Trading Briefing"
-git init
-git add .
-git commit -m "Initial pipeline: discovery, analysis, reporting, Actions workflow"
-git branch -M main
+git init && git branch -M main
+git config user.name "SDinev"
+git config user.email "13866657+SDinev@users.noreply.github.com"
+git add -A
+git commit -m "Initial pipeline: ..."
 git remote add origin https://github.com/SDinev/trader-intelligence.git
+# HTTPS push authenticated via: gh auth git-credential (SDinev token, workflow scope)
 git push -u origin main
 ```
 
