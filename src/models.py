@@ -65,3 +65,4 @@ class Brief:
     skipped_quota_videos: list[Video] = field(default_factory=list)
     failed_video_ids: list[str] = field(default_factory=list)
     pending_video_ids: list[str] = field(default_factory=list)
+    discovery_failed_handles: list[str] = field(default_factory=list)

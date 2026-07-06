@@ -42,6 +42,7 @@ def render_brief_markdown(brief: Brief) -> str:
         or brief.too_long_videos
         or brief.skipped_quota_videos
         or brief.failed_video_ids
+        or brief.discovery_failed_handles
     )
     if not has_content:
         lines.append("No new updates for this window.")
@@ -94,6 +95,11 @@ def render_brief_markdown(brief: Brief) -> str:
         lines.append("**Still live — pending next edition:**")
         for video_id in brief.pending_video_ids:
             lines.append(f"- {video_id}")
+        lines.append("")
+    if brief.discovery_failed_handles:
+        lines.append("**Could not fetch (channel feed unreachable):**")
+        for handle in brief.discovery_failed_handles:
+            lines.append(f"- {handle}")
         lines.append("")
 
     return "\n".join(lines)

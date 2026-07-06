@@ -43,8 +43,13 @@ def run_pipeline(
     start, end = lookback_window(now_utc, config, edition)
 
     all_candidates = []
+    discovery_failed_handles = []
     for entry in config["roster"]:
-        videos = fetch_channel_videos(entry["channel_id"], entry["handle"])
+        try:
+            videos = fetch_channel_videos(entry["channel_id"], entry["handle"])
+        except Exception:
+            discovery_failed_handles.append(entry["handle"])
+            continue
         all_candidates.extend(filter_videos_in_window(videos, start, end))
 
     unprocessed = filter_unprocessed(all_candidates, state)
@@ -85,6 +90,7 @@ def run_pipeline(
         skipped_quota_videos=skipped_quota,
         failed_video_ids=failed_video_ids,
         pending_video_ids=[v.video_id for v in live_videos],
+        discovery_failed_handles=discovery_failed_handles,
     )
 
     new_state = mark_processed(state, newly_processed_ids)

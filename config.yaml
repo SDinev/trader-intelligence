@@ -15,7 +15,7 @@ editions:
 
 roster:
   - handle: "@VerifiedInvesting"
-    channel_id: "UC67V_VAZ9S6T768M0coS6_w"
+    channel_id: "UCZ-J2m1AUSLnifUEKam5_dA"
   - handle: "@TraderNick"
     channel_id: "UCPCPE5MoI7DS1WiVB_-mzNw"
   - handle: "@JosephCarlsonShow"
@@ -25,7 +25,7 @@ roster:
   - handle: "@danielpronk"
     channel_id: "UCL-F-8nxFtFZ4M3RWkGn6Qw"
   - handle: "@GarethSolowayProTrader"
-    channel_id: "UCBfQDWhESbZ_clMox0OevpA"
+    channel_id: "UCwTu6kD2igaLMpxswtcdxlg"
 
 gemini:
   model: "gemini-flash-latest"

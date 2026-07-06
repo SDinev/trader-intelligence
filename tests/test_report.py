@@ -94,6 +94,17 @@ def test_footer_lists_too_long_videos():
     assert too_long_video.url in md
 
 
+def test_footer_lists_discovery_failures():
+    brief = Brief(
+        edition="afternoon",
+        generated_at=GENERATED_AT,
+        discovery_failed_handles=["@VerifiedInvesting"],
+    )
+    md = render_brief_markdown(brief)
+    assert "@VerifiedInvesting" in md
+    assert "could not fetch" in md.lower() or "unreachable" in md.lower()
+
+
 def test_discord_summary_contains_tickers_and_link():
     video = make_video("v1", "Pre-market plan")
     analysis = VideoAnalysis(

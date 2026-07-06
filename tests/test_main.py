@@ -156,6 +156,31 @@ def test_analysis_failure_is_isolated_and_not_marked_processed():
     assert "@danielpronk" not in handles_with_content
 
 
+def test_failing_channel_fetch_does_not_crash_run():
+    good_video = make_video("v-good", "@danielpronk")
+
+    def fake_fetch(channel_id, handle):
+        if handle == "@TraderNick":
+            raise RuntimeError("404 Not Found for RSS feed")
+        if handle == "@danielpronk":
+            return [good_video]
+        return []
+
+    result = run_pipeline(
+        now_utc=NOW_UTC,
+        config=CONFIG,
+        state=empty_state(),
+        fetch_channel_videos=fake_fetch,
+        fetch_video_metadata=lambda videos, api_key: videos,
+        analyze_video=lambda client, v, config: make_analysis_for(v),
+        gemini_client=object(),
+        youtube_api_key="yt-key",
+    )
+    assert result is not None
+    assert "@TraderNick" in result["brief"].discovery_failed_handles
+    assert "v-good" in result["new_state"]["processed_video_ids"]
+
+
 def test_no_eligible_videos_still_returns_heartbeat_brief():
     result = run_pipeline(
         now_utc=NOW_UTC,
