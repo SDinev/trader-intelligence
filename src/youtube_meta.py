@@ -49,7 +49,10 @@ def fetch_video_metadata(videos: list[Video], api_key: str) -> list[Video]:
             },
             timeout=REQUEST_TIMEOUT_SECONDS,
         )
-        response.raise_for_status()
+        if response.status_code != 200:
+            raise RuntimeError(
+                f"YouTube Data API returned {response.status_code}: {response.text[:500]}"
+            )
         result.extend(parse_videos_list_response(response.json(), videos_by_id))
 
     return result

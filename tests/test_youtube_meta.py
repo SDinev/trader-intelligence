@@ -53,10 +53,34 @@ def test_parse_videos_list_response_sets_duration_and_live_status():
     assert result_by_id["v2"].is_live is True
 
 
+def test_fetch_video_metadata_raises_with_response_body_on_error(monkeypatch):
+    class FakeResponse:
+        status_code = 403
+        text = '{"error": {"message": "YouTube Data API v3 has not been used", "status": "PERMISSION_DENIED"}}'
+
+        def json(self):
+            return {}
+
+        def raise_for_status(self):
+            raise AssertionError("should not be called; we surface body first")
+
+    monkeypatch.setattr("youtube_meta.requests.get", lambda url, params=None, timeout=None: FakeResponse())
+
+    import pytest
+
+    with pytest.raises(RuntimeError) as exc:
+        fetch_video_metadata([make_video("v1")], api_key="BAD_KEY")
+
+    assert "403" in str(exc.value)
+    assert "PERMISSION_DENIED" in str(exc.value)
+
+
 def test_fetch_video_metadata_calls_api_with_ids_and_key(monkeypatch):
     captured = {}
 
     class FakeResponse:
+        status_code = 200
+
         def json(self):
             return {
                 "items": [

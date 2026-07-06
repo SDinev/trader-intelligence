@@ -43,6 +43,7 @@ def render_brief_markdown(brief: Brief) -> str:
         or brief.skipped_quota_videos
         or brief.failed_video_ids
         or brief.discovery_failed_handles
+        or brief.metadata_failed
     )
     if not has_content:
         lines.append("No new updates for this window.")
@@ -100,6 +101,12 @@ def render_brief_markdown(brief: Brief) -> str:
         lines.append("**Could not fetch (channel feed unreachable):**")
         for handle in brief.discovery_failed_handles:
             lines.append(f"- {handle}")
+        lines.append("")
+    if brief.metadata_failed:
+        lines.append(
+            "**Video metadata lookup failed (YouTube Data API) — analysis skipped "
+            "this run; videos will be retried next edition.**"
+        )
         lines.append("")
 
     return "\n".join(lines)

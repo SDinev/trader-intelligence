@@ -181,6 +181,30 @@ def test_failing_channel_fetch_does_not_crash_run():
     assert "v-good" in result["new_state"]["processed_video_ids"]
 
 
+def test_metadata_api_failure_degrades_instead_of_crashing():
+    video = make_video("v1", "@TraderNick")
+    analyze_calls = []
+
+    def failing_meta(videos, api_key):
+        raise RuntimeError("YouTube Data API returned 403: Forbidden")
+
+    result = run_pipeline(
+        now_utc=NOW_UTC,
+        config=CONFIG,
+        state=empty_state(),
+        fetch_channel_videos=lambda channel_id, handle: [video] if handle == "@TraderNick" else [],
+        fetch_video_metadata=failing_meta,
+        analyze_video=lambda client, v, config: analyze_calls.append(v.video_id) or make_analysis_for(v),
+        gemini_client=object(),
+        youtube_api_key="yt-key",
+    )
+    assert result is not None
+    assert analyze_calls == []  # can't safely analyze without live/duration info
+    assert result["brief"].metadata_failed is True
+    # videos not marked processed, so a later healthy run still picks them up
+    assert result["new_state"]["processed_video_ids"] == []
+
+
 def test_no_eligible_videos_still_returns_heartbeat_brief():
     result = run_pipeline(
         now_utc=NOW_UTC,

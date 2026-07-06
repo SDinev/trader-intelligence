@@ -53,7 +53,14 @@ def run_pipeline(
         all_candidates.extend(filter_videos_in_window(videos, start, end))
 
     unprocessed = filter_unprocessed(all_candidates, state)
-    enriched = fetch_video_metadata(unprocessed, youtube_api_key) if unprocessed else []
+    metadata_failed = False
+    enriched = []
+    if unprocessed:
+        try:
+            enriched = fetch_video_metadata(unprocessed, youtube_api_key)
+        except Exception as exc:
+            metadata_failed = True
+            print(f"Video metadata lookup failed, skipping analysis this run: {exc}")
 
     live_videos = [v for v in enriched if v.is_live]
     finished_videos = [v for v in enriched if not v.is_live]
@@ -91,6 +98,7 @@ def run_pipeline(
         failed_video_ids=failed_video_ids,
         pending_video_ids=[v.video_id for v in live_videos],
         discovery_failed_handles=discovery_failed_handles,
+        metadata_failed=metadata_failed,
     )
 
     new_state = mark_processed(state, newly_processed_ids)
