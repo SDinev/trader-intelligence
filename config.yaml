@@ -36,6 +36,11 @@ quota:
   max_video_seconds_per_run: 12600  # ~3.5 video-hours, free-tier budget per run
   max_video_seconds_single: 7200    # 2h — longer videos are skipped, not analyzed
 
+analysis:
+  description_min_chars: 400        # description longer than this -> analyze description only, skip the video call
+  video_ingested_min_tokens: 4000   # Gemini prompt_token_count below this means the video was NOT ingested
+  max_retry_attempts: 2             # attempts before giving up on a video that yields no levels
+
 pages:
   base_url: "https://sdinev.github.io/trader-intelligence"
 
