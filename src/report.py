@@ -30,10 +30,15 @@ def _merge_assets_by_ticker(
     return merged
 
 
+_LEVEL_MARKERS = {"description": "ᴰ", "video": "ⱽ"}
+
+
 def _format_levels_cell(levels: list) -> str:
     if not levels:
         return "—"
-    return "; ".join(f"[{lvl.price}]({lvl.link})" for lvl in levels)
+    return "; ".join(
+        f"[{lvl.price}]({lvl.link}){_LEVEL_MARKERS.get(lvl.source, '')}" for lvl in levels
+    )
 
 
 def _format_strategy_cell(strategy_notes: list[tuple[str, str]]) -> str:
@@ -56,6 +61,8 @@ def render_brief_markdown(brief: Brief, ticker_aliases: dict | None = None) -> s
         or brief.failed_video_ids
         or brief.discovery_failed_handles
         or brief.metadata_failed
+        or brief.given_up_video_ids
+        or brief.retrying_video_ids
     )
     if not has_content:
         lines.append("No new updates for this window.")
@@ -74,6 +81,8 @@ def render_brief_markdown(brief: Brief, ticker_aliases: dict | None = None) -> s
             resistance_cell = _format_levels_cell(bucket["resistance"])
             strategy_cell = _format_strategy_cell(bucket["strategy_notes"])
             lines.append(f"| {ticker} | {support_cell} | {resistance_cell} | {strategy_cell} |")
+        lines.append("")
+        lines.append("_Level source: ᴰ = creator's video description · ⱽ = spoken/shown in video_")
         lines.append("")
 
     for summary in brief.creator_summaries:
@@ -113,6 +122,16 @@ def render_brief_markdown(brief: Brief, ticker_aliases: dict | None = None) -> s
         lines.append("**Could not fetch (channel feed unreachable):**")
         for handle in brief.discovery_failed_handles:
             lines.append(f"- {handle}")
+        lines.append("")
+    if brief.given_up_video_ids:
+        lines.append("**Couldn't extract reliable levels (gave up after retries):**")
+        for video_id in brief.given_up_video_ids:
+            lines.append(f"- {video_id}")
+        lines.append("")
+    if brief.retrying_video_ids:
+        lines.append("**Retrying next edition (no levels extracted yet):**")
+        for video_id in brief.retrying_video_ids:
+            lines.append(f"- {video_id}")
         lines.append("")
     if brief.metadata_failed:
         lines.append(

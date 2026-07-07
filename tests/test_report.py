@@ -130,6 +130,31 @@ def test_asset_table_applies_configured_ticker_aliases():
     assert "4200" in gold_rows[0] and "3500" in gold_rows[0]
 
 
+def test_level_cell_shows_source_marker():
+    video = make_video("v1", "recap")
+    analysis = VideoAnalysis(video=video, assets=[AssetLevels(
+        ticker="SPY",
+        support=[PriceLevel(price="605", timestamp_seconds=10, source_video_id="v1", source="description")],
+        resistance=[PriceLevel(price="612", timestamp_seconds=20, source_video_id="v1", source="video")],
+    )])
+    brief = Brief(edition="morning", generated_at=GENERATED_AT,
+                  creator_summaries=[CreatorSummary(handle="@a", analyses=[analysis])])
+    md = render_brief_markdown(brief)
+    assert "[605](https://www.youtube.com/watch?v=v1&t=10s)ᴰ" in md
+    assert "[612](https://www.youtube.com/watch?v=v1&t=20s)ⱽ" in md
+    assert "Level source:" in md  # legend present
+
+
+def test_given_up_and_retrying_status_lines():
+    brief = Brief(edition="morning", generated_at=GENERATED_AT,
+                  given_up_video_ids=["gone1"], retrying_video_ids=["later1"])
+    md = render_brief_markdown(brief)
+    assert "gone1" in md
+    assert "later1" in md
+    assert "gave up" in md.lower()
+    assert "retrying" in md.lower()
+
+
 def test_footer_lists_too_long_videos():
     too_long_video = make_video("v3", "3-hour marathon stream")
     brief = Brief(edition="morning", generated_at=GENERATED_AT, too_long_videos=[too_long_video])
