@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 from main import run_pipeline
 from models import Video
+from analyze import analysis_is_grounded  # noqa: F401  (ensures module import parity)
 
 CONFIG = {
     "timezone": "Europe/Sofia",
@@ -15,6 +16,7 @@ CONFIG = {
     ],
     "quota": {"max_video_seconds_per_run": 100000, "max_video_seconds_single": 7200},
     "gemini": {"model": "gemini-flash-latest", "media_resolution": "MEDIA_RESOLUTION_LOW", "temperature": 0},
+    "analysis": {"max_retry_attempts": 2},
 }
 
 NOW_UTC = datetime(2026, 7, 6, 6, 5, tzinfo=timezone.utc)  # 09:05 Sofia (EEST) -> morning
@@ -39,6 +41,77 @@ def make_analysis_for(video):
     from models import VideoAnalysis
 
     return VideoAnalysis(video=video, assets=[], macro_notes="ok", no_levels_mentioned=True)
+
+
+def make_unextracted_analysis(video):
+    # video attached, not ingested, no surviving levels -> not grounded
+    from models import VideoAnalysis
+    return VideoAnalysis(video=video, assets=[], macro_notes="", no_levels_mentioned=False,
+                         video_attached=True, video_ingested=False)
+
+
+def make_grounded_analysis(video):
+    from models import VideoAnalysis, AssetLevels, PriceLevel
+    return VideoAnalysis(
+        video=video,
+        assets=[AssetLevels(ticker="SPY", support=[
+            PriceLevel(price="1", timestamp_seconds=0, source_video_id=video.video_id, source="description")])],
+        video_attached=False, video_ingested=False,
+    )
+
+
+def test_unextracted_video_enters_retry_queue_not_processed():
+    video = make_video("v1", "@TraderNick")
+    result = run_pipeline(
+        now_utc=NOW_UTC, config=CONFIG, state=empty_state(),
+        fetch_channel_videos=lambda cid, h: [video] if h == "@TraderNick" else [],
+        fetch_video_metadata=lambda vids, key: vids,
+        analyze_video=lambda client, v, cfg: make_unextracted_analysis(v),
+        gemini_client=object(), youtube_api_key="k",
+    )
+    assert result["new_state"]["processed_video_ids"] == []
+    ids = [e["video_id"] for e in result["new_state"]["retry_queue"]]
+    assert ids == ["v1"]
+    assert result["new_state"]["retry_queue"][0]["attempts"] == 1
+    assert "v1" in result["brief"].retrying_video_ids
+
+
+def test_retry_video_gives_up_after_max_attempts():
+    video = make_video("v1", "@TraderNick")
+    state = {"processed_video_ids": [], "pending_video_ids": [], "retry_queue": [
+        {"video_id": "v1", "channel_handle": "@TraderNick", "title": "t",
+         "published_at": NOW_UTC.isoformat(), "attempts": 1}
+    ]}
+    # CONFIG max_retry_attempts defaults to 2 -> attempt becomes 2 -> give up
+    result = run_pipeline(
+        now_utc=NOW_UTC, config={**CONFIG, "analysis": {"max_retry_attempts": 2}}, state=state,
+        fetch_channel_videos=lambda cid, h: [],
+        fetch_video_metadata=lambda vids, key: vids,
+        analyze_video=lambda client, v, cfg: make_unextracted_analysis(v),
+        gemini_client=object(), youtube_api_key="k",
+    )
+    assert result["new_state"]["retry_queue"] == []
+    assert "v1" in result["new_state"]["processed_video_ids"]
+    assert "v1" in result["brief"].given_up_video_ids
+
+
+def test_grounded_retry_video_is_processed_and_removed_from_queue():
+    video = make_video("v1", "@TraderNick")
+    state = {"processed_video_ids": [], "pending_video_ids": [], "retry_queue": [
+        {"video_id": "v1", "channel_handle": "@TraderNick", "title": "t",
+         "published_at": NOW_UTC.isoformat(), "attempts": 1}
+    ]}
+    result = run_pipeline(
+        now_utc=NOW_UTC, config=CONFIG, state=state,
+        fetch_channel_videos=lambda cid, h: [],
+        fetch_video_metadata=lambda vids, key: vids,
+        analyze_video=lambda client, v, cfg: make_grounded_analysis(v),
+        gemini_client=object(), youtube_api_key="k",
+    )
+    assert result["new_state"]["retry_queue"] == []
+    assert "v1" in result["new_state"]["processed_video_ids"]
+    handles = [cs.handle for cs in result["brief"].creator_summaries]
+    assert "@TraderNick" in handles
 
 
 def test_returns_none_on_wrong_dst_twin_slot():

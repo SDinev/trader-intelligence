@@ -13,8 +13,18 @@ from discovery import filter_videos_in_window
 from models import Brief, CreatorSummary
 from notify import post_discord_message
 from report import discord_summary, list_brief_entries, render_brief_markdown, render_index_markdown
-from state import filter_unprocessed, load_state, mark_pending, mark_processed, save_state
+from state import (
+    filter_unprocessed,
+    load_state,
+    mark_pending,
+    mark_processed,
+    retry_attempts,
+    retry_entry,
+    retry_stub_videos,
+    save_state,
+)
 from youtube_meta import fetch_video_metadata as real_fetch_video_metadata
+from analyze import analysis_is_grounded
 from analyze import analyze_video as real_analyze_video
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -52,12 +62,18 @@ def run_pipeline(
             continue
         all_candidates.extend(filter_videos_in_window(videos, start, end))
 
-    unprocessed = filter_unprocessed(all_candidates, state)
+    max_attempts = config.get("analysis", {}).get("max_retry_attempts", 2)
+    attempts_by_id = retry_attempts(state)
+    retry_ids = set(attempts_by_id)
+
+    discovered = [v for v in filter_unprocessed(all_candidates, state) if v.video_id not in retry_ids]
+    to_enrich = discovered + retry_stub_videos(state)
+
     metadata_failed = False
     enriched = []
-    if unprocessed:
+    if to_enrich:
         try:
-            enriched = fetch_video_metadata(unprocessed, youtube_api_key)
+            enriched = fetch_video_metadata(to_enrich, youtube_api_key)
         except Exception as exc:
             metadata_failed = True
             print(f"Video metadata lookup failed, skipping analysis this run: {exc}")
@@ -72,7 +88,19 @@ def run_pipeline(
 
     analyses_by_handle: dict[str, list] = {}
     failed_video_ids = []
+    given_up_video_ids = []
+    retrying_video_ids = []
+    new_retry_entries: list[dict] = []
     newly_processed_ids = [v.video_id for v in too_long]
+
+    def handle_unextracted(video):
+        n = attempts_by_id.get(video.video_id, 0) + 1
+        if n >= max_attempts:
+            given_up_video_ids.append(video.video_id)
+            newly_processed_ids.append(video.video_id)
+        else:
+            retrying_video_ids.append(video.video_id)
+            new_retry_entries.append(retry_entry(video, n))
 
     for video in eligible:
         try:
@@ -80,14 +108,19 @@ def run_pipeline(
         except Exception:
             failed_video_ids.append(video.video_id)
             continue
-        analyses_by_handle.setdefault(video.channel_handle, []).append(analysis)
-        newly_processed_ids.append(video.video_id)
+        if analysis_is_grounded(analysis):
+            analyses_by_handle.setdefault(video.channel_handle, []).append(analysis)
+            newly_processed_ids.append(video.video_id)
+        else:
+            handle_unextracted(video)
 
     creator_summaries = [
         CreatorSummary(handle=entry["handle"], analyses=analyses_by_handle[entry["handle"]])
         for entry in config["roster"]
         if entry["handle"] in analyses_by_handle
     ]
+
+    pending_ids = [v.video_id for v in live_videos]
 
     brief = Brief(
         edition=edition,
@@ -96,13 +129,20 @@ def run_pipeline(
         too_long_videos=too_long,
         skipped_quota_videos=skipped_quota,
         failed_video_ids=failed_video_ids,
-        pending_video_ids=[v.video_id for v in live_videos],
+        pending_video_ids=pending_ids,
         discovery_failed_handles=discovery_failed_handles,
         metadata_failed=metadata_failed,
+        given_up_video_ids=given_up_video_ids,
+        retrying_video_ids=retrying_video_ids,
     )
 
     new_state = mark_processed(state, newly_processed_ids)
-    new_state = mark_pending(new_state, [v.video_id for v in live_videos])
+    new_state = mark_pending(new_state, pending_ids)
+
+    # Rebuild retry_queue: keep prior entries not resolved this run, plus new ones.
+    resolved = set(newly_processed_ids) | set(pending_ids) | set(retrying_video_ids)
+    carryover = [e for e in state.get("retry_queue", []) if e["video_id"] not in resolved]
+    new_state["retry_queue"] = carryover + new_retry_entries
 
     return {"brief": brief, "new_state": new_state}
 
