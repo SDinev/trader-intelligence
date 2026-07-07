@@ -17,6 +17,7 @@ class Video:
     published_at: datetime
     duration_seconds: int
     is_live: bool
+    description: str = ""
 
     @property
     def url(self) -> str:
@@ -28,6 +29,8 @@ class PriceLevel:
     price: str
     timestamp_seconds: int
     source_video_id: str
+    source: str = "video"
+    quote: str = ""
 
     @property
     def link(self) -> str:
@@ -48,6 +51,8 @@ class VideoAnalysis:
     assets: list[AssetLevels] = field(default_factory=list)
     macro_notes: str = ""
     no_levels_mentioned: bool = False
+    video_attached: bool = False
+    video_ingested: bool = False
 
 
 @dataclass
@@ -67,3 +72,5 @@ class Brief:
     pending_video_ids: list[str] = field(default_factory=list)
     discovery_failed_handles: list[str] = field(default_factory=list)
     metadata_failed: bool = False
+    given_up_video_ids: list[str] = field(default_factory=list)
+    retrying_video_ids: list[str] = field(default_factory=list)
