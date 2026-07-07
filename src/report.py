@@ -36,9 +36,15 @@ _LEVEL_MARKERS = {"description": "ᴰ", "video": "ⱽ"}
 def _format_levels_cell(levels: list) -> str:
     if not levels:
         return "—"
-    return "; ".join(
-        f"[{lvl.price}]({lvl.link}){_LEVEL_MARKERS.get(lvl.source, '')}" for lvl in levels
-    )
+    cells = []
+    for lvl in levels:
+        marker = _LEVEL_MARKERS.get(lvl.source, "")
+        if lvl.quote:
+            title = lvl.quote.replace('"', "'")
+            cells.append(f'[{lvl.price}]({lvl.link} "{title}"){marker}')
+        else:
+            cells.append(f"[{lvl.price}]({lvl.link}){marker}")
+    return "; ".join(cells)
 
 
 def _format_strategy_cell(strategy_notes: list[tuple[str, str]]) -> str:

@@ -145,6 +145,23 @@ def test_level_cell_shows_source_marker():
     assert "Level source:" in md  # legend present
 
 
+def test_level_cell_renders_quote_as_link_title():
+    video = make_video("v1", "recap")
+    analysis = VideoAnalysis(video=video, assets=[AssetLevels(
+        ticker="SPY",
+        support=[PriceLevel(price="605", timestamp_seconds=10, source_video_id="v1",
+                            source="description", quote="support at 605")],
+        resistance=[PriceLevel(price="612", timestamp_seconds=20, source_video_id="v1",
+                               source="video")],  # empty quote -> plain form
+    )])
+    brief = Brief(edition="morning", generated_at=GENERATED_AT,
+                  creator_summaries=[CreatorSummary(handle="@a", analyses=[analysis])])
+    md = render_brief_markdown(brief)
+    assert '](https://www.youtube.com/watch?v=v1&t=10s "support at 605")' in md
+    # empty quote still renders plain form with no title
+    assert "[612](https://www.youtube.com/watch?v=v1&t=20s)ⱽ" in md
+
+
 def test_given_up_and_retrying_status_lines():
     brief = Brief(edition="morning", generated_at=GENERATED_AT,
                   given_up_video_ids=["gone1"], retrying_video_ids=["later1"])
