@@ -63,6 +63,24 @@ def test_parse_videos_list_response_sets_duration_and_live_status():
     assert result_by_id["v2"].duration_seconds == 0
 
 
+def test_parse_videos_list_response_populates_description():
+    videos_by_id = {"v1": make_video("v1")}
+    api_response = {
+        "items": [
+            {
+                "id": "v1",
+                "contentDetails": {"duration": "PT25M"},
+                "snippet": {
+                    "liveBroadcastContent": "none",
+                    "description": "SPY support 605\nQQQ resistance 450",
+                },
+            }
+        ]
+    }
+    result = parse_videos_list_response(api_response, videos_by_id)
+    assert result[0].description == "SPY support 605\nQQQ resistance 450"
+
+
 def test_upcoming_broadcast_is_treated_as_not_finished():
     videos_by_id = {"v3": make_video("v3")}
     api_response = {

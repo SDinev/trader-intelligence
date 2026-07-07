@@ -35,7 +35,15 @@ def parse_videos_list_response(api_response: dict, videos_by_id: dict[str, Video
         # Only "none" is a finished, analyzable VOD; "live" and "upcoming"
         # are not yet analyzable and are deferred to the pending queue.
         is_live = item["snippet"]["liveBroadcastContent"] != "none"
-        result.append(replace(original, duration_seconds=duration_seconds, is_live=is_live))
+        description = item["snippet"].get("description", "")
+        result.append(
+            replace(
+                original,
+                duration_seconds=duration_seconds,
+                is_live=is_live,
+                description=description,
+            )
+        )
     return result
 
 
