@@ -114,13 +114,29 @@ def run_pipeline(
         else:
             handle_unextracted(video)
 
+    pending_ids = [v.video_id for v in live_videos]
+
+    # Retry-origin videos not resolved this run (analysis raised, or the video
+    # vanished from the API) must still consume an attempt so they eventually
+    # give up instead of retrying forever. Videos legitimately deferred for
+    # quota keep their attempt count unchanged.
+    stub_by_id = {v.video_id: v for v in retry_stub_videos(state)}
+    skipped_quota_ids = {v.video_id for v in skipped_quota}
+    accounted = (
+        set(newly_processed_ids)
+        | set(pending_ids)
+        | set(retrying_video_ids)
+        | skipped_quota_ids
+    )
+    for video_id in retry_ids:
+        if video_id not in accounted and video_id in stub_by_id:
+            handle_unextracted(stub_by_id[video_id])
+
     creator_summaries = [
         CreatorSummary(handle=entry["handle"], analyses=analyses_by_handle[entry["handle"]])
         for entry in config["roster"]
         if entry["handle"] in analyses_by_handle
     ]
-
-    pending_ids = [v.video_id for v in live_videos]
 
     brief = Brief(
         edition=edition,

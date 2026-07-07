@@ -114,6 +114,75 @@ def test_grounded_retry_video_is_processed_and_removed_from_queue():
     assert "@TraderNick" in handles
 
 
+def test_retry_video_consumes_attempt_when_analysis_raises():
+    state = {"processed_video_ids": [], "pending_video_ids": [], "retry_queue": [
+        {"video_id": "v1", "channel_handle": "@TraderNick", "title": "t",
+         "published_at": NOW_UTC.isoformat(), "attempts": 0}
+    ]}
+
+    def boom(client, v, cfg):
+        raise RuntimeError("gemini exploded")
+
+    result = run_pipeline(
+        now_utc=NOW_UTC, config={**CONFIG, "analysis": {"max_retry_attempts": 2}}, state=state,
+        fetch_channel_videos=lambda cid, h: [],
+        fetch_video_metadata=lambda vids, key: vids,
+        analyze_video=boom,
+        gemini_client=object(), youtube_api_key="k",
+    )
+    ids = [e["video_id"] for e in result["new_state"]["retry_queue"]]
+    assert ids == ["v1"]
+    attempts = {e["video_id"]: e["attempts"] for e in result["new_state"]["retry_queue"]}
+    assert attempts["v1"] == 1
+    assert "v1" in result["brief"].retrying_video_ids
+    assert "v1" not in result["new_state"]["processed_video_ids"]
+
+
+def test_retry_video_gives_up_when_it_disappears_from_api():
+    state = {"processed_video_ids": [], "pending_video_ids": [], "retry_queue": [
+        {"video_id": "v1", "channel_handle": "@TraderNick", "title": "t",
+         "published_at": NOW_UTC.isoformat(), "attempts": 1}
+    ]}
+    result = run_pipeline(
+        now_utc=NOW_UTC, config={**CONFIG, "analysis": {"max_retry_attempts": 2}}, state=state,
+        fetch_channel_videos=lambda cid, h: [],
+        fetch_video_metadata=lambda vids, key: [],  # video vanished from the API
+        analyze_video=lambda client, v, cfg: make_grounded_analysis(v),
+        gemini_client=object(), youtube_api_key="k",
+    )
+    assert result["new_state"]["retry_queue"] == []
+    assert "v1" in result["brief"].given_up_video_ids
+    assert "v1" in result["new_state"]["processed_video_ids"]
+
+
+def test_retry_video_skipped_for_quota_keeps_attempts():
+    state = {"processed_video_ids": [], "pending_video_ids": [], "retry_queue": [
+        {"video_id": "v1", "channel_handle": "@TraderNick", "title": "t",
+         "published_at": NOW_UTC.isoformat(), "attempts": 1}
+    ]}
+    quota_config = {**CONFIG,
+                    "quota": {"max_video_seconds_per_run": 0, "max_video_seconds_single": 7200},
+                    "analysis": {"max_retry_attempts": 2}}
+
+    def enrich(vids, key):
+        # return the retry stub as a finished, analyzable video (duration>0)
+        return [v.__class__(**{**v.__dict__, "duration_seconds": 600, "is_live": False}) for v in vids]
+
+    result = run_pipeline(
+        now_utc=NOW_UTC, config=quota_config, state=state,
+        fetch_channel_videos=lambda cid, h: [],
+        fetch_video_metadata=enrich,
+        analyze_video=lambda client, v, cfg: make_grounded_analysis(v),
+        gemini_client=object(), youtube_api_key="k",
+    )
+    ids = [e["video_id"] for e in result["new_state"]["retry_queue"]]
+    assert ids == ["v1"]
+    attempts = {e["video_id"]: e["attempts"] for e in result["new_state"]["retry_queue"]}
+    assert attempts["v1"] == 1
+    assert "v1" not in result["new_state"]["processed_video_ids"]
+    assert "v1" not in result["brief"].given_up_video_ids
+
+
 def test_returns_none_on_wrong_dst_twin_slot():
     wrong_slot_time = datetime(2026, 7, 6, 7, 0, tzinfo=timezone.utc)  # 10:00 Sofia, no edition match
     result = run_pipeline(
