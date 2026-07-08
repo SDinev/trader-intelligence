@@ -183,10 +183,12 @@ def test_retry_video_skipped_for_quota_keeps_attempts():
     assert "v1" not in result["brief"].given_up_video_ids
 
 
-def test_returns_none_on_wrong_dst_twin_slot():
-    wrong_slot_time = datetime(2026, 7, 6, 7, 0, tzinfo=timezone.utc)  # 10:00 Sofia, no edition match
+def test_late_firing_maps_to_nearest_edition_and_runs():
+    # A morning cron fired 3h late (10:00 Sofia) still maps to the morning
+    # edition and produces a brief rather than no-op'ing.
+    late_time = datetime(2026, 7, 6, 7, 0, tzinfo=timezone.utc)  # 10:00 Sofia
     result = run_pipeline(
-        now_utc=wrong_slot_time,
+        now_utc=late_time,
         config=CONFIG,
         state=empty_state(),
         fetch_channel_videos=lambda channel_id, handle: [],
@@ -195,7 +197,8 @@ def test_returns_none_on_wrong_dst_twin_slot():
         gemini_client=object(),
         youtube_api_key="yt-key",
     )
-    assert result is None
+    assert result is not None
+    assert result["brief"].edition == "morning"
 
 
 def test_already_processed_video_excluded_and_not_analyzed():

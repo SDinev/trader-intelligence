@@ -31,13 +31,18 @@ def test_afternoon_edition_matches():
     assert determine_edition(now_utc, CONFIG) == "afternoon"
 
 
-def test_wrong_dst_twin_slot_returns_none():
-    # A run fired for the "winter" UTC cron time, but it's actually summer —
-    # Sofia local time lands nowhere near either edition target.
-    # e.g. cron fires at 07:00 UTC in July (would-be winter morning slot),
-    # which in EEST summer is 10:00 Sofia — outside tolerance of 09:00.
-    now_utc = datetime(2026, 7, 6, 7, 0, tzinfo=timezone.utc)
-    assert determine_edition(now_utc, CONFIG) is None
+def test_late_firing_maps_to_nearest_edition():
+    # GitHub Actions cron often fires 1-3h late. A morning cron that fires at
+    # 09:20 UTC in summer (12:20 Sofia) is still far nearer the 09:00 morning
+    # target than the 17:30 afternoon target, so it must map to "morning"
+    # rather than no-op'ing.
+    now_utc = datetime(2026, 7, 6, 9, 20, tzinfo=timezone.utc)  # 12:20 Sofia
+    assert determine_edition(now_utc, CONFIG) == "morning"
+
+
+def test_late_afternoon_firing_maps_to_afternoon():
+    now_utc = datetime(2026, 7, 6, 17, 0, tzinfo=timezone.utc)  # 20:00 Sofia
+    assert determine_edition(now_utc, CONFIG) == "afternoon"
 
 
 def test_forced_edition_overrides_time_check():

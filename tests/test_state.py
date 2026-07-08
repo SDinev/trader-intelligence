@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from models import Video
 from state import filter_unprocessed, load_state, mark_pending, mark_processed, save_state
 from state import retry_attempts, retry_entry, retry_stub_videos
+from state import edition_already_completed, record_edition_completed
 
 
 def make_video(video_id: str) -> Video:
@@ -106,3 +107,24 @@ def test_retry_entry_from_video_roundtrips():
     assert entry["channel_handle"] == "@TraderNick"
     assert entry["attempts"] == 1
     assert entry["published_at"] == v.published_at.isoformat()
+
+
+def test_edition_not_completed_by_default():
+    state = {"processed_video_ids": [], "pending_video_ids": [], "retry_queue": []}
+    assert edition_already_completed(state, "morning", "2026-07-08") is False
+
+
+def test_record_and_check_edition_completed():
+    state = {"processed_video_ids": [], "pending_video_ids": [], "retry_queue": []}
+    state = record_edition_completed(state, "morning", "2026-07-08")
+    assert edition_already_completed(state, "morning", "2026-07-08") is True
+    # a different edition or a different day is not yet completed
+    assert edition_already_completed(state, "afternoon", "2026-07-08") is False
+    assert edition_already_completed(state, "morning", "2026-07-09") is False
+
+
+def test_record_edition_preserves_other_state_keys():
+    state = {"processed_video_ids": ["a"], "pending_video_ids": [], "retry_queue": [{"video_id": "x", "attempts": 1}]}
+    new = record_edition_completed(state, "afternoon", "2026-07-08")
+    assert new["processed_video_ids"] == ["a"]
+    assert new["retry_queue"] == [{"video_id": "x", "attempts": 1}]

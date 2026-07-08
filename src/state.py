@@ -72,3 +72,13 @@ def retry_entry(video: Video, attempts: int) -> dict:
         "published_at": video.published_at.isoformat(),
         "attempts": attempts,
     }
+
+
+def edition_already_completed(state: dict, edition: str, date_str: str) -> bool:
+    return state.get("last_edition_dates", {}).get(edition) == date_str
+
+
+def record_edition_completed(state: dict, edition: str, date_str: str) -> dict:
+    new = dict(state)
+    new["last_edition_dates"] = {**state.get("last_edition_dates", {}), edition: date_str}
+    return new

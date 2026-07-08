@@ -14,10 +14,12 @@ from models import Brief, CreatorSummary
 from notify import post_discord_message
 from report import discord_summary, list_brief_entries, render_brief_markdown, render_index_markdown
 from state import (
+    edition_already_completed,
     filter_unprocessed,
     load_state,
     mark_pending,
     mark_processed,
+    record_edition_completed,
     retry_attempts,
     retry_entry,
     retry_stub_videos,
@@ -173,6 +175,19 @@ def main() -> None:
     state = load_state(STATE_PATH)
     now_utc = datetime.now(timezone.utc)
 
+    edition = determine_edition(now_utc, config, forced_edition=args.edition)
+    date_str = now_utc.strftime("%Y-%m-%d")
+    if edition is None:
+        print("No edition configured — no-op.")
+        return
+    # Idempotency: GitHub's late cron means both DST-twin crons for an edition
+    # fire (hours apart). Run the work once per edition per day; a scheduled
+    # re-fire for an already-completed edition no-ops instead of overwriting a
+    # good brief. Manual (--edition) and --dry-run runs always proceed.
+    if not args.edition and not args.dry_run and edition_already_completed(state, edition, date_str):
+        print(f"{edition} edition already completed for {date_str} — no-op.")
+        return
+
     gemini_client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
     youtube_api_key = os.environ["YOUTUBE_API_KEY"]
     discord_webhook_url = os.environ.get("DISCORD_WEBHOOK_URL")
@@ -190,11 +205,10 @@ def main() -> None:
     )
 
     if result is None:
-        print("Wrong DST-twin cron slot — no-op.")
+        print("No edition configured — no-op.")
         return
 
     brief = result["brief"]
-    date_str = now_utc.strftime("%Y-%m-%d")
     brief_filename = f"{date_str}-{brief.edition}.md"
     brief_path = BRIEFS_DIR / brief_filename
     page_url = f"{config['pages']['base_url']}/briefs/{date_str}-{brief.edition}"
@@ -212,7 +226,8 @@ def main() -> None:
 
     INDEX_PATH.write_text(render_index_markdown(list_brief_entries(BRIEFS_DIR)))
 
-    save_state(STATE_PATH, result["new_state"])
+    new_state = record_edition_completed(result["new_state"], brief.edition, date_str)
+    save_state(STATE_PATH, new_state)
 
     if discord_webhook_url:
         post_discord_message(
