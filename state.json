@@ -4,18 +4,15 @@
     "CcfDcz1X0oE",
     "M8FhcMaccOI",
     "PXk1wVJ19P0",
+    "_Fx85Gpj5sE",
     "xzXduRI5isw"
   ],
   "pending_video_ids": [
-    "r8RGF92lQZ0"
+    "r8RGF92lQZ0",
+    "w2oiHB2NjNg"
   ],
-  "retry_queue": [
-    {
-      "video_id": "_Fx85Gpj5sE",
-      "channel_handle": "@VerifiedInvesting",
-      "title": "Reddit Could Be Setting Up a Breakout \u2014 Plus 9 More Levels",
-      "published_at": "2026-07-06T20:00:00+00:00",
-      "attempts": 1
-    }
-  ]
+  "retry_queue": [],
+  "last_edition_dates": {
+    "afternoon": "2026-07-08"
+  }
 }
