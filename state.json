@@ -1,23 +1,31 @@
 {
   "processed_video_ids": [
     "6Fo5jznqU5Q",
+    "9qh0evfGgHU",
     "CcfDcz1X0oE",
+    "L4gD2-Id4I4",
     "M8FhcMaccOI",
     "PXk1wVJ19P0",
     "_Fx85Gpj5sE",
     "eY0goz4pB20",
+    "n-FQsQdm3Rc",
     "sPEOBya33hk",
     "w2oiHB2NjNg",
     "xzXduRI5isw"
   ],
   "pending_video_ids": [
+    "AaGU1Dh-sNs",
+    "FOMUXewLX4w",
+    "LJ8XWZJTFXg",
     "ZBGLhnFMHMw",
+    "gJa3qETd_zw",
     "r8RGF92lQZ0",
-    "vWYLXHNmZwM"
+    "vWYLXHNmZwM",
+    "zIg-5crLKcE"
   ],
   "retry_queue": [],
   "last_edition_dates": {
     "afternoon": "2026-07-10",
-    "morning": "2026-07-10"
+    "morning": "2026-07-11"
   }
 }
