@@ -2,6 +2,7 @@
   "processed_video_ids": [
     "-2EThrP0hAY",
     "-VmtRMyrLKg",
+    "0GQqLthIK0A",
     "0m_6gV2imXs",
     "1amJxUZbHoI",
     "1b0SdgUen0o",
@@ -49,6 +50,7 @@
     "SRpgK8Puktw",
     "Seu2cC5jbuo",
     "TPjLjj1NLpA",
+    "UGdwuBpsBDo",
     "V7VnJ4TTshg",
     "VAjgqWR1fGw",
     "VTlwlshjNFc",
@@ -75,6 +77,7 @@
     "hyzPDcPi8AE",
     "jEvMJmndSC4",
     "jFSBGEb-90M",
+    "jJRS5pUjEDw",
     "kPkb0NRaVnU",
     "kV3PypeqOoM",
     "mXj68fmRJMI",
@@ -97,7 +100,6 @@
     "za--Sx0rwYc"
   ],
   "pending_video_ids": [
-    "0GQqLthIK0A",
     "0sgTgqR9FL4",
     "2TZ7p3dRLIU",
     "6pJrOuslIMI",
@@ -108,7 +110,6 @@
     "FOMUXewLX4w",
     "JdDehdWMfrg",
     "U9nUAzWHwl0",
-    "UGdwuBpsBDo",
     "UckFm6dL1eM",
     "VCyenIN4tIM",
     "VU89caxZE-o",
@@ -123,6 +124,7 @@
     "lMJypwgFpUo",
     "ohUEVe7tW6w",
     "r8RGF92lQZ0",
+    "sI64PPNnxt0",
     "s_isHgzu4BI",
     "vKu3MAJti7c",
     "vWYLXHNmZwM",
@@ -130,7 +132,7 @@
   ],
   "retry_queue": [],
   "last_edition_dates": {
-    "afternoon": "2026-08-03",
+    "afternoon": "2026-08-04",
     "morning": "2026-08-04"
   }
 }
