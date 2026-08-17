@@ -23,6 +23,7 @@
     "7sXi1wOpNjg",
     "7tiDSPD9LiU",
     "8AIbZvVUxDw",
+    "8O0jRGGV3p8",
     "9ILMcmS9bz8",
     "9qh0evfGgHU",
     "AXpBDuEkVTI",
@@ -80,6 +81,7 @@
     "ZqAu5xs23kk",
     "_Fx85Gpj5sE",
     "_rlQqYI0zC0",
+    "aWzeZ9GlZvs",
     "bMilKgvKRIs",
     "cCnvQ2bBMWY",
     "d5ZfOXNGBpM",
@@ -92,6 +94,7 @@
     "fARNRGSWD-g",
     "fURaP5VUxCM",
     "gJa3qETd_zw",
+    "hVvchPdmA7A",
     "hhfiHtqbEW0",
     "hjJaJTR14k4",
     "hyzPDcPi8AE",
@@ -165,17 +168,9 @@
     "vWYLXHNmZwM",
     "zIg-5crLKcE"
   ],
-  "retry_queue": [
-    {
-      "video_id": "hVvchPdmA7A",
-      "channel_handle": "@VerifiedInvesting",
-      "title": "Emotion Shows Up at the Exit, Not the Entry",
-      "published_at": "2026-08-16T19:00:11+00:00",
-      "attempts": 1
-    }
-  ],
+  "retry_queue": [],
   "last_edition_dates": {
-    "afternoon": "2026-08-16",
+    "afternoon": "2026-08-17",
     "morning": "2026-08-17"
   }
 }
