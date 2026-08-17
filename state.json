@@ -85,6 +85,7 @@
     "d5ZfOXNGBpM",
     "dT5QwXlhDsM",
     "doU4Aiz5ZrE",
+    "eS_XBtBiXpE",
     "eT56-tiTU5c",
     "eY0goz4pB20",
     "ezTESh5RvFA",
@@ -164,9 +165,17 @@
     "vWYLXHNmZwM",
     "zIg-5crLKcE"
   ],
-  "retry_queue": [],
+  "retry_queue": [
+    {
+      "video_id": "hVvchPdmA7A",
+      "channel_handle": "@VerifiedInvesting",
+      "title": "Emotion Shows Up at the Exit, Not the Entry",
+      "published_at": "2026-08-16T19:00:11+00:00",
+      "attempts": 1
+    }
+  ],
   "last_edition_dates": {
     "afternoon": "2026-08-16",
-    "morning": "2026-08-16"
+    "morning": "2026-08-17"
   }
 }
