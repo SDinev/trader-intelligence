@@ -130,7 +130,9 @@
     "sq-28fUS1Jc",
     "tqK-nPasohw",
     "tqaYMsq55h4",
+    "uAqiJjom7Hw",
     "w2oiHB2NjNg",
+    "w3zQ9y55Q7U",
     "w7aRuhJK2mY",
     "xEdjXtLEguI",
     "xVAdibRvzxk",
@@ -173,14 +175,21 @@
     "q0sihxTa2RY",
     "r8RGF92lQZ0",
     "s_isHgzu4BI",
-    "uAqiJjom7Hw",
     "vKu3MAJti7c",
     "vWYLXHNmZwM",
     "zIg-5crLKcE"
   ],
-  "retry_queue": [],
+  "retry_queue": [
+    {
+      "video_id": "Tx5A-WWzhcY",
+      "channel_handle": "@VerifiedInvesting",
+      "title": "How Nick Explains Bitcoin to Grandma",
+      "published_at": "2026-08-22T14:00:00+00:00",
+      "attempts": 1
+    }
+  ],
   "last_edition_dates": {
-    "afternoon": "2026-08-21",
+    "afternoon": "2026-08-22",
     "morning": "2026-08-22"
   }
 }
