@@ -97,6 +97,7 @@
     "eY0goz4pB20",
     "ezTESh5RvFA",
     "fARNRGSWD-g",
+    "fPhMc6sIv5o",
     "fURaP5VUxCM",
     "gEvlPM1FLGs",
     "gJa3qETd_zw",
@@ -171,7 +172,6 @@
     "ZVvrkIUq3Vo",
     "ZvpWQ5j8UO8",
     "dgK2e6L2H34",
-    "fPhMc6sIv5o",
     "gc7nJ_1_wrY",
     "k26-uBNI8OA",
     "lMJypwgFpUo",
@@ -183,9 +183,17 @@
     "vWYLXHNmZwM",
     "zIg-5crLKcE"
   ],
-  "retry_queue": [],
+  "retry_queue": [
+    {
+      "video_id": "QDvmkiJvBOE",
+      "channel_handle": "@VerifiedInvesting",
+      "title": "Netflix, APP, and One Ticker He Won't Name | Trading Playbook",
+      "published_at": "2026-08-23T14:00:09+00:00",
+      "attempts": 1
+    }
+  ],
   "last_edition_dates": {
-    "afternoon": "2026-08-22",
+    "afternoon": "2026-08-23",
     "morning": "2026-08-23"
   }
 }
