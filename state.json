@@ -137,6 +137,7 @@
     "qM0jDhbdO78",
     "qfLxgNgA28U",
     "qnEdn9SAffY",
+    "rTnKM_NzsKg",
     "rjdPCLf3thQ",
     "sI64PPNnxt0",
     "sO7UnjXQeu4",
@@ -209,9 +210,17 @@
     "vfZI8fvaFOM",
     "zIg-5crLKcE"
   ],
-  "retry_queue": [],
+  "retry_queue": [
+    {
+      "video_id": "jI6GOWhWqtI",
+      "channel_handle": "@VerifiedInvesting",
+      "title": "Crypto Combat: Stocks & ETFs Enter the Arena",
+      "published_at": "2026-09-03T22:00:03+00:00",
+      "attempts": 1
+    }
+  ],
   "last_edition_dates": {
     "afternoon": "2026-09-03",
-    "morning": "2026-08-29"
+    "morning": "2026-09-04"
   }
 }
