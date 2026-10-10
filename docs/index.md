@@ -1,5 +1,6 @@
 # Trader Intelligence Brief Archive
 
+- [2026-10-10 — Afternoon Edition](briefs/2026-10-10-afternoon.md)
 - [2026-10-09 — Afternoon Edition](briefs/2026-10-09-afternoon.md)
 - [2026-10-08 — Afternoon Edition](briefs/2026-10-08-afternoon.md)
 - [2026-10-07 — Afternoon Edition](briefs/2026-10-07-afternoon.md)
